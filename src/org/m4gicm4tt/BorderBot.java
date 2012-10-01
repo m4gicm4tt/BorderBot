@@ -7,14 +7,10 @@ import java.awt.AWTException;
 import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.Toolkit;
-import java.awt.event.InputEvent;
-import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
 import java.io.File;
 import java.io.IOException;
-import java.io.ObjectInputStream.GetField;
-
 import javax.imageio.ImageIO;
 
 /**
@@ -26,31 +22,24 @@ public class BorderBot {
 	/**
 	 * @param args
 	 */
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
+	public static void main(String[] args) {		
 		BorderBot myBot = new BorderBot();
 		int[] result = myBot
 				.findPicAInPicB(
-						myBot.getImage("C:\\Users\\Matthew\\Documents\\GitHub\\BorderBot\\bin\\org\\m4gicm4tt\\dropArrow.bmp"),
+						myBot.getImage(System.getProperty("user.dir")+"\\src\\org\\m4gicm4tt\\image.bmp"),
 						myBot.getScreenshot(), 20);
-		// int[] result =
-		// myBot.findPicAInPicB(myBot.getImage("C:\\Users\\Matthew\\Documents\\GitHub\\BorderBot\\bin\\org\\m4gicm4tt\\dropArrow1.png"),
-		// myBot.getImage("C:\\Users\\Matthew\\Documents\\GitHub\\BorderBot\\bin\\org\\m4gicm4tt\\dropArrow.png"),
-		// 10 );
 		Robot myRobot;
 		try {
 			myRobot = new Robot();
 			myRobot.mouseMove(result[0], result[1]);
-			myRobot.mousePress(InputEvent.getMaskForButton(MouseEvent.BUTTON1));
-			Thread.sleep(1000);
-			myRobot.mouseRelease(InputEvent.getMaskForButton(MouseEvent.BUTTON1));
-		} catch (AWTException | InterruptedException e) {
-			// TODO Auto-generated catch block
+			//myRobot.mousePress(InputEvent.getMaskForButton(MouseEvent.BUTTON1));
+			//Thread.sleep(1000);
+			//myRobot.mouseRelease(InputEvent.getMaskForButton(MouseEvent.BUTTON1));
+		} catch (AWTException e) {
 			e.printStackTrace();
 		}
 		System.out.println("result " + result[0] + ", " + result[1]);
 	}
-
 	private BufferedImage getScreenshot() {
 		BufferedImage capture = null;
 		try {
@@ -62,26 +51,22 @@ public class BorderBot {
 					capture,
 					"bmp",
 					new File(
-							"C:\\Users\\Matthew\\Documents\\GitHub\\BorderBot\\bin\\org\\m4gicm4tt\\printscreen.bmp"));
+							".\\printscreen.bmp"));
 
 		} catch (AWTException | IOException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		return capture;
 	}
-
 	private BufferedImage getImage(String path) {
 		BufferedImage myPic = null;
 		try {
 			myPic = ImageIO.read(new File(path));
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return myPic;
 	}
-
 	private int[] findPicAInPicB(BufferedImage picA, BufferedImage picB,
 			int variance) {
 		int x_coord = -1;
@@ -106,10 +91,9 @@ public class BorderBot {
 		picAbuf = rasterPicA.getPixels(0, 0, maxXofA, maxYofA, picAbuf);
 		// no partial matches that is why maxYofB - maxYofA
 		for (int i = 0; (i <= (maxYofB - maxYofA)) && !foundMatch; i++) {
-			//
 			for (int j = 0; (j <= (maxXofB - maxXofA)) && !foundMatch; j++) {
-				//
 				if (match) {
+					// TODO: this is very slow, add more levels of progression					
 					picBbuf = rasterPicB.getPixels(j, i, maxXofA, maxYofA,
 							picBbuf);
 					pointer = picBbuf;
@@ -134,10 +118,8 @@ public class BorderBot {
 					match = false;
 			}
 		}
-
 		return new int[] { x_coord, y_coord };
 	}
-
 	private boolean matchPixel(double[] picA, double[] picB, int variance) {
 		for (int i = 0; i < picB.length; i++) {
 			if (Math.abs(picA[i] - picB[i]) >= variance) {
