@@ -19,27 +19,31 @@ import javax.imageio.ImageIO;
  */
 public class BorderBot {
 
+	// private enum state{start, launch, waitForPlay, waitForMenu, goToShift}
+
 	/**
 	 * @param args
 	 */
-	public static void main(String[] args) {		
+	public static void main(String[] args) {
 		BorderBot myBot = new BorderBot();
-		int[] result = myBot
-				.findPicAInPicB(
-						myBot.getImage(System.getProperty("user.dir")+"\\src\\org\\m4gicm4tt\\image.bmp"),
-						myBot.getScreenshot(), 20);
+		int[] result = myBot.findPicAInPicB(
+				myBot.getImage(System.getProperty("user.dir")
+						+ "\\src\\org\\m4gicm4tt\\image.bmp"),
+				myBot.getScreenshot(), 20);
 		Robot myRobot;
+
 		try {
 			myRobot = new Robot();
 			myRobot.mouseMove(result[0], result[1]);
-			//myRobot.mousePress(InputEvent.getMaskForButton(MouseEvent.BUTTON1));
-			//Thread.sleep(1000);
-			//myRobot.mouseRelease(InputEvent.getMaskForButton(MouseEvent.BUTTON1));
+			// myRobot.mousePress(InputEvent.getMaskForButton(MouseEvent.BUTTON1));
+			// Thread.sleep(1000);
+			// myRobot.mouseRelease(InputEvent.getMaskForButton(MouseEvent.BUTTON1));
 		} catch (AWTException e) {
 			e.printStackTrace();
 		}
 		System.out.println("result " + result[0] + ", " + result[1]);
 	}
+
 	private BufferedImage getScreenshot() {
 		BufferedImage capture = null;
 		try {
@@ -47,17 +51,14 @@ public class BorderBot {
 			Rectangle screenRect = new Rectangle(Toolkit.getDefaultToolkit()
 					.getScreenSize());
 			capture = myRobot.createScreenCapture(screenRect);
-			ImageIO.write(
-					capture,
-					"bmp",
-					new File(
-							".\\printscreen.bmp"));
+			ImageIO.write(capture, "bmp", new File(".\\printscreen.bmp"));
 
 		} catch (AWTException | IOException e1) {
 			e1.printStackTrace();
 		}
 		return capture;
 	}
+
 	private BufferedImage getImage(String path) {
 		BufferedImage myPic = null;
 		try {
@@ -67,10 +68,14 @@ public class BorderBot {
 		}
 		return myPic;
 	}
+
 	private int[] findPicAInPicB(BufferedImage picA, BufferedImage picB,
 			int variance) {
 		int x_coord = -1;
 		int y_coord = -1;
+
+		int num0 = 0, num4 = 0, num8 =0, numSlow = 0;
+
 		Raster rasterPicA = picA.getData();
 		Raster rasterPicB = picB.getData();
 
@@ -81,45 +86,63 @@ public class BorderBot {
 		int maxYofB = rasterPicB.getHeight();
 
 		int maxSamples = maxXofA * maxYofA * rasterPicA.getNumBands();
-		boolean match = false, foundMatch = false;
-
+		boolean foundMatch = false;
+		int match = 0;
 		double[] picAbuf = new double[maxSamples];
 		double[] picBbuf = new double[maxSamples];
 		double[] picBbuf_1 = new double[rasterPicB.getNumBands()];
+		// TODO: must be greater then 4px
+		double[] picBbuf_4 = new double[rasterPicB.getNumBands() * 4];
+		// TODO: must be greater then 8px
+		double[] picBbuf_8 = new double[rasterPicB.getNumBands() * 8];
 		double[] pointer;
 
 		picAbuf = rasterPicA.getPixels(0, 0, maxXofA, maxYofA, picAbuf);
 		// no partial matches that is why maxYofB - maxYofA
 		for (int i = 0; (i <= (maxYofB - maxYofA)) && !foundMatch; i++) {
 			for (int j = 0; (j <= (maxXofB - maxXofA)) && !foundMatch; j++) {
-				if (match) {
-					// TODO: this is very slow, add more levels of progression					
+				if (match == 3) {
+					// TODO: this is very slow, add more levels of progression
 					picBbuf = rasterPicB.getPixels(j, i, maxXofA, maxYofA,
 							picBbuf);
 					pointer = picBbuf;
-				} else {
+					numSlow++;
+				} else if (match == 2) {
+					picBbuf_8 = rasterPicB.getPixels(j, i, 8, 1, picBbuf_8);
+					pointer = picBbuf_8;
+					num8++;
+				} else if (match == 1) {
+					picBbuf_4 = rasterPicB.getPixels(j, i, 4, 1, picBbuf_4);
+					pointer = picBbuf_4;
+					num4++;
+				}else {
 					picBbuf_1 = rasterPicB.getPixel(j, i, picBbuf_1);
 					pointer = picBbuf_1;
+					num0++;
 				}
 				if (matchPixel(picAbuf, pointer, variance)) {
-					if (match) {
+					if (match == 3) {
 						x_coord = j;
 						y_coord = i;
 						foundMatch = true;
+						match = 0; // doesn't matter
 					}
+					match++;
 					if (j == 0) {
 						i--;
 						j = maxXofB - maxXofA;
 					} else {
 						j--;
 					}
-					match = true;
 				} else
-					match = false;
+					match = 0;
 			}
 		}
+		System.out.println("num0 " + num0 + ", " + "num4 " + num4 + ", " + "num8 " + num8 + ", "
+				+ "numSlow " + numSlow);
 		return new int[] { x_coord, y_coord };
 	}
+
 	private boolean matchPixel(double[] picA, double[] picB, int variance) {
 		for (int i = 0; i < picB.length; i++) {
 			if (Math.abs(picA[i] - picB[i]) >= variance) {
