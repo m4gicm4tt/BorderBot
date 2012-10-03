@@ -19,6 +19,12 @@ import javax.imageio.ImageIO;
  */
 public class ImageSearch {
 
+	private BorderBot myBot;
+
+	public ImageSearch(BorderBot bBot) {
+		myBot = bBot;
+	}
+
 	public BufferedImage getScreenshot() {
 		BufferedImage capture = null;
 		try {
@@ -28,8 +34,11 @@ public class ImageSearch {
 			capture = myRobot.createScreenCapture(screenRect);
 			ImageIO.write(capture, "bmp", new File(".\\printscreen.bmp"));
 
-		} catch (AWTException | IOException e1) {
+		} catch (AWTException e1) {
 			e1.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		return capture;
 	}
@@ -113,8 +122,9 @@ public class ImageSearch {
 					match = 0;
 			}
 		}
-		System.out.println("num0 " + num0 + ", " + "num4 " + num4 + ", "
-				+ "num8 " + num8 + ", " + "numSlow " + numSlow);
+		// myBot.sendDebug("num0 " + num0 + ", " + "num4 " + num4 + ", " +
+		// "num8 "
+		// + num8 + ", " + "numSlow " + numSlow);
 		return new int[] { x_coord, y_coord };
 	}
 
